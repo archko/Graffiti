@@ -204,7 +204,9 @@ public class LineView extends View {
         height = getHeight();
         if (mFinishedPaths.size() >= 0) {
             for (int i = 0; i < mPathCount; i++) {
-                mFinishedPaths.get(i).drawMarkPath(mTempCanvas);
+                MarkPath markPath = mFinishedPaths.get(i);
+                markPath.drawMarkPath(mTempCanvas);
+                mTempCanvas.drawPath(markPath.mPath, markPath.sPaint);
             }
         }
 
@@ -372,28 +374,29 @@ public class LineView extends View {
 
         public static String toJson(ArrayList<MarkPath> finishedPaths) {
             JSONObject object = new JSONObject();
-            JSONArray ja = new JSONArray();
             try {
-                object.put("ja", ja);
-                object.put("version", "1");
+                object.put("page", 0);
+                object.put("ver", "1");
+                JSONArray ja = new JSONArray();
+                object.put("p", ja);
                 for (MarkPath markPath : finishedPaths) {
                     JSONObject obj = new JSONObject();
-                    obj.put("page", 0);
-                    obj.put("marktype", markPath.mCurrentMarkType.name());
-                    obj.put("stroke", markPath.mCurrentWidth);
-                    obj.put("color", markPath.sPaint.getColor());
+                    obj.put("t", markPath.mCurrentMarkType.name());
+                    obj.put("s", markPath.mCurrentWidth);
+                    obj.put("c", markPath.sPaint.getColor());
                     List<CustomPath.PathAction> actions = markPath.mPath.getActions();
-                    if (null != actions && actions.size() > 0) {
-                        JSONArray pathJa = new JSONArray();
-                        obj.put("actions", pathJa);
+                    if (null != actions && !actions.isEmpty()) {
+                        JSONArray actionJa = new JSONArray();
+                        obj.put("acs", actionJa);
                         for (CustomPath.PathAction action : actions) {
                             JSONObject actionObj = new JSONObject();
-                            actionObj.put("x", action.getX());
-                            actionObj.put("y", action.getY());
-                            actionObj.put("type", action.getType().name());
-                            pathJa.put(actionObj);
+                            actionObj.put("x1", action.getX());
+                            actionObj.put("y1", action.getY());
+                            actionObj.put("x2", action.getX2());
+                            actionObj.put("y2", action.getY2());
+                            actionObj.put("t", action.getType().name());
+                            actionJa.put(actionObj);
                         }
-                        obj.put("path", pathJa);
                     }
                     ja.put(obj);
                 }
@@ -410,39 +413,46 @@ public class LineView extends View {
             ArrayList<MarkPath> paths = new ArrayList<>();
             try {
                 JSONObject object = new JSONObject(json);
-                JSONArray ja = object.optJSONArray("ja");
+                JSONArray ja = object.optJSONArray("p");
                 for (int i = 0; i < ja.length(); i++) {
                     JSONObject obj = ja.optJSONObject(i);
+                    String type = obj.optString("t");
+                    int stroke = obj.optInt("s");
+                    int color = obj.optInt("c");
                     CustomPath customPath = null;
-                    int color = obj.optInt("color");
-                    JSONArray pathJa = obj.optJSONArray("path");
+                    JSONArray actionJa = obj.optJSONArray("acs");
                     PointF point = null;
-                    if (null != pathJa && pathJa.length() > 0) {
+                    if (null != actionJa && actionJa.length() > 0) {
                         customPath = new CustomPath();
                         List<CustomPath.PathAction> actions = new ArrayList<>();
                         customPath.setActions(actions);
-                        for (int j = 0; j < pathJa.length(); j++) {
-                            JSONObject actionObj = pathJa.optJSONObject(j);
-                            float x = actionObj.optInt("x");
-                            float y = actionObj.optInt("y");
-                            if (j == 0) {
-                                point = new PointF(x, y);
+                        for (int j = 0; j < actionJa.length(); j++) {
+                            JSONObject actionObj = actionJa.optJSONObject(j);
+                            float x1 = (float) actionObj.optDouble("x1");
+                            float y1 = (float) actionObj.optDouble("y1");
+                            float x2 = (float) actionObj.optDouble("x2");
+                            float y2 = (float) actionObj.optDouble("y2");
+                            String t = actionObj.optString("t");
+                            CustomPath.PathAction.PathActionType actionType = CustomPath.PathAction.PathActionType.valueOf(t);
+                            if (actionType == CustomPath.PathAction.PathActionType.MOVE_TO) {
+                                point = new PointF(x1, y1);
                             }
-                            String type = actionObj.optString("type");
-                            CustomPath.PathAction.PathActionType actionType = CustomPath.PathAction.PathActionType.valueOf(type);
                             if (actionType == CustomPath.PathAction.PathActionType.LINE_TO) {
-                                CustomPath.PathAction action = new CustomPath.ActionLine(x, y);
+                                CustomPath.PathAction action = new CustomPath.ActionLine(x1, y1);
                                 actions.add(action);
-                            } else {
-                                CustomPath.PathAction action = new CustomPath.ActionMove(x, y);
+                            } else if (actionType == CustomPath.PathAction.PathActionType.QUAD_TO) {
+                                CustomPath.PathAction action = new CustomPath.ActionQuad(x1, y1, x2, y2);
+                                actions.add(action);
+                            } else if (actionType == CustomPath.PathAction.PathActionType.MOVE_TO) {
+                                CustomPath.PathAction action = new CustomPath.ActionMove(x1, y1);
                                 actions.add(action);
                             }
                         }
                         customPath.drawThisPath();
                     }
                     MarkPath markPath = restoreMarkPath(customPath, color, point);
-                    markPath.mCurrentWidth = obj.optInt("stroke");
-                    markPath.mCurrentMarkType = MarkType.valueOf(obj.optString("marktype"));
+                    markPath.mCurrentWidth = stroke;
+                    markPath.mCurrentMarkType = MarkType.valueOf(type);
                     paths.add(markPath);
                 }
             } catch (JSONException e) {
