@@ -14,10 +14,10 @@ android {
 
     signingConfigs {
         key {
-            storeFile file('zjt.jks')
-            storePassword 'nasott123'
-            keyAlias 'nasott'
-            keyPassword 'nasott123'
+            storeFile file('.jks')
+            storePassword ''
+            keyAlias ''
+            keyPassword ''
             v2SigningEnabled true
         }
     }
