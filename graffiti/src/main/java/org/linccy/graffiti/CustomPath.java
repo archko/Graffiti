@@ -8,8 +8,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.Nullable;
-
 /**
  * @author: archko 2024/8/7 :16:38
  */
@@ -37,33 +35,18 @@ public class CustomPath extends Path implements Serializable {
 
     @Override
     public void moveTo(float x, float y) {
-        System.out.println(String.format("moveTo.dx,dy:%s-%s", x, y));
         actions.add(new ActionMove(x, y));
         super.moveTo(x, y);
     }
 
     @Override
     public void lineTo(float x, float y) {
-        System.out.println(String.format("lineTo.dx,dy:%s-%s", x, y));
         actions.add(new ActionLine(x, y));
         super.lineTo(x, y);
     }
 
     @Override
-    public void offset(float dx, float dy) {
-        System.out.println(String.format("offset.dx,dy:%s-%s", dx, dy));
-        super.offset(dx, dy);
-    }
-
-    @Override
-    public void offset(float dx, float dy, @Nullable Path dst) {
-        System.out.println(String.format("offset.dx,dy:%s-%s-%s", dx, dy, dst));
-        super.offset(dx, dy, dst);
-    }
-
-    @Override
     public void quadTo(float x1, float y1, float x2, float y2) {
-        System.out.println(String.format("quadTo.dx,dy:%s-%s, %s-%s", x1, y1, x2, y2));
         actions.add(new ActionQuad(x1, y1, x2, y2));
         super.quadTo(x1, y1, x2, y2);
     }

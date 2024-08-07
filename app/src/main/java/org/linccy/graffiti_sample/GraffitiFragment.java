@@ -17,7 +17,6 @@ import org.linccy.graffiti.GraffitiView;
 import org.linccy.graffiti.LineView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -98,7 +97,7 @@ public class GraffitiFragment extends Fragment implements View.OnClickListener {
     public void onPause() {
         super.onPause();
         ArrayList<LineView.MarkPath> lines = mGraffitiView.getFinishedPaths();
-        if (null != lines && lines.size() > 0) {
+        if (null != lines) {
             MMKV.defaultMMKV().encode("line", LineView.MarkPath.toJson(lines));
         }
     }

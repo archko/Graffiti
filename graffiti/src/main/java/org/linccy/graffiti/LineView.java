@@ -108,9 +108,9 @@ public class LineView extends View {
     }
 
     public void clear() {
+        mFinishedPaths.clear();
         if (mPathCount != 0) {
             mPathCount = 0;
-            mFinishedPaths.clear();
             invalidate();
         }
     }
