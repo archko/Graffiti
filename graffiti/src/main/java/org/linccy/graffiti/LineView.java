@@ -434,7 +434,7 @@ public class LineView extends View {
                             float y2 = (float) actionObj.optDouble("y2");
                             String t = actionObj.optString("t");
                             CustomPath.PathAction.PathActionType actionType = CustomPath.PathAction.PathActionType.valueOf(t);
-                            if (actionType == CustomPath.PathAction.PathActionType.MOVE_TO) {
+                            if (actionType == CustomPath.PathAction.PathActionType.MOVE_TO && point == null) {
                                 point = new PointF(x1, y1);
                             }
                             if (actionType == CustomPath.PathAction.PathActionType.LINE_TO) {
