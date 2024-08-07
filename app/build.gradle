@@ -1,0 +1,92 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: "kotlin-parcelize"
+
+def static buildTime() {
+    return "_" + new Date().format("yyyyMMdd_HHmm", TimeZone.getTimeZone("GMT+08:00"))
+}
+
+android {
+    namespace "org.linccy.graffiti_sample"
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    signingConfigs {
+        key {
+            storeFile file('zjt.jks')
+            storePassword 'nasott123'
+            keyAlias 'nasott'
+            keyPassword 'nasott123'
+            v2SigningEnabled true
+        }
+    }
+
+    defaultConfig {
+        applicationId "org.linccy.graffiti_sample"
+        minSdkVersion 21
+        targetSdkVersion 35
+        versionCode 1
+        versionName "1.0"
+
+        versionName "1.1.9".concat(buildTime())
+        multiDexEnabled true
+
+        signingConfig signingConfigs.key
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "room.incremental"     : "true",
+                        "room.expandProjection": "true"
+                ]
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.key
+            minifyEnabled false
+            jniDebuggable true
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            signingConfig signingConfigs.key
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        encoding = "UTF-8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+    }
+    lintOptions { abortOnError false }
+
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            outputFileName = "Graffiti-${variant.versionName}.apk"
+        }
+    }
+}
+
+dependencies {
+    api fileTree(dir: "libs", include: ["*.jar"])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
+
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.github.bumptech.glide:glide:4.15.1'
+    kapt 'com.github.bumptech.glide:compiler:4.15.1'
+    implementation "me.jfenn.ColorPickerDialog:base:0.2.2"
+    api("com.tencent:mmkv:1.3.4")
+
+    api project(':graffiti')
+}
